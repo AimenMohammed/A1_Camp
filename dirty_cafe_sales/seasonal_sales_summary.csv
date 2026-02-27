@@ -1,0 +1,6 @@
+Season,Transaction_ID,Total_Spent,Total_Spent,Total_Spent,Transaction_Date
+,count,sum,max,min,count
+Fall,2424,21277.5,25.0,1.0,2424
+Spring,2323,21039.0,25.0,1.0,2323
+Summer,2378,21163.0,25.0,1.0,2378
+Winter,2389,21389.0,25.0,1.0,2389
