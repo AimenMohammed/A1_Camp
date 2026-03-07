@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Task Management System{% endblock %}</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        /* Global Variables */
+        :root {
+            --sidebar-width: 70px;
+            --sidebar-expanded: 260px;
+            --primary-color: #2563eb;
+            --bg-body: #f1f5f9;
+            --transition-speed: 0.4s;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif;
+            background-color: var(--bg-body);
+            display: flex;
+            min-height: 100vh;
+            direction: ltr; /* English Left-to-Right */
+            overflow-x: hidden;
+        }
+
+        /* Sidebar - Repositioned to the Left */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: #1e293b;
+            position: fixed;
+            left: 0; /* Changed from right to left */
+            top: 0;
+            display: flex;
+            flex-direction: column;
+            transition: width var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            z-index: 1000;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+        }
+
+        .sidebar:hover {
+            width: var(--sidebar-expanded);
+        }
+
+        /* Sidebar Header */
+        .sidebar-header {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: white;
+            border-bottom: 1px solid #334155;
+            white-space: nowrap;
+        }
+
+        .sidebar-header .logo-text {
+            font-weight: bold;
+            font-size: 1.1rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .sidebar:hover .sidebar-header .logo-text {
+            opacity: 1;
+        }
+
+        /* Navigation Links */
+        .sidebar-nav {
+            flex: 1;
+            padding-top: 20px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 22px;
+            text-decoration: none;
+            color: #94a3b8;
+            transition: all 0.3s;
+            white-space: nowrap;
+            border-left: 4px solid transparent; /* Changed from border-right to border-left */
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background-color: #334155;
+            color: white;
+            border-left-color: var(--primary-color);
+        }
+
+        .nav-item .icon {
+            font-size: 1.4rem;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .nav-item .label {
+            margin-left: 20px; /* Changed margin-right to margin-left */
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .sidebar:hover .nav-item .label {
+            opacity: 1;
+        }
+
+        /* Footer / Back Button */
+        .sidebar-footer {
+            padding: 15px;
+            border-top: 1px solid #334155;
+            margin-top: auto;
+        }
+
+        .back-link-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            padding: 12px 8px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #94a3b8;
+            transition: color 0.3s;
+            white-space: nowrap;
+        }
+
+        .back-link-btn:hover {
+            color: #ef4444;
+        }
+
+        .back-link-btn .label {
+            margin-left: 20px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .sidebar:hover .back-link-btn .label {
+            opacity: 1;
+        }
+
+        /* Main Content - Pushed from the Left */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width); /* Adjust margin to the left */
+            transition: margin-left var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 30px;
+            width: 100%;
+        }
+
+        .sidebar:hover ~ .main-content {
+            margin-left: var(--sidebar-expanded);
+        }
+
+        /* Top Bar */
+        .top-bar {
+            background: #fff;
+            padding: 20px 30px;
+            border-radius: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .header-info h1 { font-size: 1.6rem; color: #0f172a; }
+        .header-info p { color: #64748b; margin-top: 5px; }
+
+        footer.main-footer {
+            text-align: center;
+            padding: 30px;
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <span class="icon">🚀</span>
+            <span class="logo-text">Aimen's Admin</span>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="/" class="nav-item {% if active_page == 'home' %}active{% endif %}">
+                <span class="icon">🏠</span><span class="label">Home</span>
+            </a>
+            <a href="/users" class="nav-item {% if active_page == 'users' %}active{% endif %}">
+                <span class="icon">👥</span><span class="label">Users</span>
+            </a>
+            <a href="/projects" class="nav-item {% if active_page == 'projects' %}active{% endif %}">
+                <span class="icon">📁</span><span class="label">Projects</span>
+            </a>
+            <a href="/tasks" class="nav-item {% if active_page == 'tasks' %}active{% endif %}">
+                <span class="icon">✅</span><span class="label">Tasks</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <button onclick="window.history.back()" class="back-link-btn">
+                <span class="icon">⬅️</span>
+                <span class="label">Go Back</span>
+            </button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-bar">
+            <div class="header-info">
+                {% block header_content %}{% endblock %}
+            </div>
+            <div class="header-actions">
+                {% block header_actions %}{% endblock %}
+            </div>
+        </header>
+
+        <div class="page-body">
+            {% block content %}{% endblock %}
+        </div>
+
+        <footer class="main-footer">
+            <p>&copy; 2026 Integrated Task Management - FastAPI</p>
+        </footer>
+    </main>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>
