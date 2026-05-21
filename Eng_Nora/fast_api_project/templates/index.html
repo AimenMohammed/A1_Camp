@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}Home | Dashboard{% endblock %}
+
+{% block header_content %}
+    <h1>General Dashboard</h1>
+    <p>Welcome back, Aimen Mohammed</p>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+    <div class="dashboard-grid">
+        
+        <div class="card">
+            <a href="/users" class="card-inner">
+                <div class="card-visual users-bg">
+                    <span class="icon">👥</span>
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">User Management</h3>
+                    <p class="card-description">Add new members, manage permissions, and monitor active account statuses.</p>
+                </div>
+                <div class="card-footer-action">
+                    <span class="action-text">Enter Section</span>
+                    <span class="arrow-icon">→</span>
+                </div>
+            </a>
+        </div>
+
+        <div class="card">
+            <a href="/projects" class="card-inner">
+                <div class="card-visual projects-bg">
+                    <span class="icon">📁</span>
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">Project Management</h3>
+                    <p class="card-description">Create new projects, define budgets, and track the timeline for every milestone.</p>
+                </div>
+                <div class="card-footer-action">
+                    <span class="action-text">Enter Section</span>
+                    <span class="arrow-icon">→</span>
+                </div>
+            </a>
+        </div>
+
+        <div class="card">
+            <a href="/tasks" class="card-inner">
+                <div class="card-visual tasks-bg">
+                    <span class="icon">✅</span>
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">Task Management</h3>
+                    <p class="card-description">Distribute tasks to the team, update completion statuses, and monitor deadlines.</p>
+                </div>
+                <div class="card-footer-action">
+                    <span class="action-text">Enter Section</span>
+                    <span class="arrow-icon">→</span>
+                </div>
+            </a>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    /* Grid Container */
+    .dashboard-wrapper {
+        padding: 10px;
+        display: flex;
+        justify-content: center;
+    }
+
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 24px;
+        width: 100%;
+        max-width: 1200px;
+    }
+
+    /* Card Base Design */
+    .card {
+        background: #ffffff;
+        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+        border-color: var(--primary-color);
+    }
+
+    .card-inner {
+        display: flex;
+        flex-direction: column;
+        padding: 30px;
+        text-decoration: none;
+        height: 100%;
+    }
+
+    /* Visual Icon Header */
+    .card-visual {
+        width: 54px;
+        height: 54px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
+        margin-bottom: 20px;
+    }
+
+    .users-bg { background: #eff6ff; color: #2563eb; }
+    .projects-bg { background: #f0fdf4; color: #16a34a; }
+    .tasks-bg { background: #fff7ed; color: #ea580c; }
+
+    /* Text Content */
+    .card-content {
+        flex-grow: 1;
+        margin-bottom: 25px;
+    }
+
+    .card-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 10px;
+    }
+
+    .card-description {
+        font-size: 0.95rem;
+        color: #64748b;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    /* Footer Action */
+    .card-footer-action {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 8px;
+        color: var(--primary-color);
+        font-weight: 600;
+        font-size: 0.9rem;
+        border-top: 1px solid #f1f5f9;
+        padding-top: 15px;
+    }
+
+    .arrow-icon {
+        transition: transform 0.3s ease;
+    }
+
+    .card:hover .arrow-icon {
+        transform: translateX(6px); /* Arrow moves RIGHT in LTR */
+    }
+
+    .card:hover .action-text {
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}

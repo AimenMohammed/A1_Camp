@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+{% block title %}Task Details | {{ task.title }}{% endblock %}
+
+{% block header_content %}
+    <div class="task-title-section">
+        <h1 style="display: flex; align-items: center; gap: 12px; margin: 0;">
+            <span class="icon">✅</span>
+            {{ task.title }}
+            <span class="id-badge">#{{ task.id }}</span>
+        </h1>
+        <p style="margin-top: 5px; color: #64748b; font-size: 0.95rem;">System Task Specification & Status Tracking</p>
+    </div>
+{% endblock %}
+
+{% block header_actions %}
+    <div class="action-buttons" style="display: flex; gap: 10px;">
+        <button id="editBtn" class="primary-btn" style="background: #f1f5f9; color: #1e293b; border: 1px solid #cbd5e1;">📝 Edit Specification</button>
+        <button id="deleteBtn" class="delete-btn">🗑️ Delete Task</button>
+    </div>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <div class="table-wrapper" style="margin-bottom: 30px;">
+        <div class="section-header" style="padding: 15px 20px; background: #f8fafc; border-bottom: 1px solid #f1f5f9;">
+            <h3 style="margin: 0; font-size: 0.9rem; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em;">Core Metadata</h3>
+        </div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th style="width: 33%;">STATUS</th>
+                    <th style="width: 33%;">LINKED PROJECT</th>
+                    <th style="width: 33%;">PRIMARY ASSIGNEE</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <span class="status-badge {{ 'active' if task.status == 'done' else 'pending' }}">
+                            {{ "Completed" if task.status == "done" else "In Progress" }}
+                        </span>
+                    </td>
+                    <td>
+                        <a href="/projects/{{ task.project_id }}" class="card-link" style="font-weight: 600;">
+                            📁 #{{ task.project_id }} {{ task.project.title if task.project else 'N/A' }}
+                        </a>
+                    </td>
+                    <td>
+                        <span style="font-weight: 600; color: #1e293b;">
+                            👤 #{{ task.assigned_to }} {{ task.assigned_user.name if task.assigned_user else 'Unassigned' }}
+                        </span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="table-wrapper" style="margin-bottom: 30px;">
+        <div class="section-header" style="padding: 15px 20px; background: #f8fafc; border-bottom: 1px solid #f1f5f9;">
+            <h3 style="margin: 0; font-size: 0.9rem; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em;">Detailed Description</h3>
+        </div>
+        <div style="padding: 25px; background: white;">
+            <p style="color: #334155; line-height: 1.8; font-size: 1rem; margin: 0; white-space: pre-wrap;">{{ task.description if task.description else "No detailed description provided for this task." }}</p>
+        </div>
+    </div>
+
+    <div id="editForm" class="form-overlay-card" style="display:none; margin-bottom: 30px;">
+        <h3>⚙️ Update Task Specification</h3>
+        <div class="form-grid">
+            <div class="form-group full-width">
+                <label>Task Title:</label>
+                <input type="text" id="edit_title" value="{{ task.title }}">
+                <span id="error_title" class="error-msg"></span>
+            </div>
+
+            <div class="form-group">
+                <label>Status:</label>
+                <select id="edit_status">
+                    <option value="pending" {% if task.status=="pending" %}selected{% endif %}>Pending</option>
+                    <option value="done" {% if task.status=="done" %}selected{% endif %}>Done</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Assignee (User):</label>
+                <input list="users_list" id="edit_user_search" 
+                       value="{{ task.assigned_to }} - {{ task.assigned_user.name if task.assigned_user else '' }}"
+                       placeholder="Search users...">
+                <datalist id="users_list">
+                    {% for user in users %}
+                    <option data-id="{{ user.id }}" value="{{ user.id }} - {{ user.name }}">
+                    {% endfor %}
+                </datalist>
+                <span id="error_assigned_to" class="error-msg"></span>
+            </div>
+
+            <div class="form-group full-width">
+                <label>Linked Project:</label>
+                <input list="projects_list" id="edit_project_search" 
+                       value="{{ task.project_id }} - {{ task.project.title if task.project else '' }}"
+                       placeholder="Search projects...">
+                <datalist id="projects_list">
+                    {% for project in projects %}
+                    <option data-id="{{ project.id }}" value="{{ project.id }} - {{ project.title }}">
+                    {% endfor %}
+                </datalist>
+                <span id="error_project_id" class="error-msg"></span>
+            </div>
+
+            <div class="form-group full-width">
+                <label>Description:</label>
+                <textarea id="edit_desc" rows="4">{{ task.description }}</textarea>
+            </div>
+        </div>
+        <div class="form-actions" style="margin-top: 15px; display: flex; gap: 10px;">
+            <button id="saveBtn" class="primary-btn">Save Changes</button>
+            <button id="cancelBtn" class="delete-btn" style="background: transparent; border: 1px solid #cbd5e1; color: #64748b;">Cancel</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const taskId = {{ task.id | tojson }};
+    const editForm = document.getElementById("editForm");
+
+    /**
+     * Extracts the numeric ID from a "ID - Name" datalist string
+     */
+    function getIDFromDatalist(inputId, listId) {
+        const val = document.getElementById(inputId).value;
+        const opts = document.getElementById(listId).options;
+        for (let i = 0; i < opts.length; i++) {
+            if (opts[i].value === val) return opts[i].getAttribute('data-id');
+        }
+        const idOnly = val.split(" - ")[0];
+        return idOnly ? parseInt(idOnly) : null;
+    }
+
+    document.getElementById("editBtn").onclick = () => {
+        editForm.style.display = (editForm.style.display === "none") ? "block" : "none";
+        if (editForm.style.display === "block") editForm.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    document.getElementById("cancelBtn").onclick = () => { editForm.style.display = "none"; };
+
+    document.getElementById("saveBtn").onclick = async () => {
+        // Retrieve IDs from searchable inputs
+        const projectId = getIDFromDatalist('edit_project_search', 'projects_list');
+        const userId = getIDFromDatalist('edit_user_search', 'users_list');
+
+        const payload = {
+            title: document.getElementById("edit_title").value,
+            description: document.getElementById("edit_desc").value,
+            status: document.getElementById("edit_status").value,
+            project_id: projectId,
+            assigned_to: userId
+        };
+
+        try {
+            const res = await fetch(`/tasks/${taskId}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                location.reload(); 
+            } else {
+                const errorData = await res.json();
+                alert("Update failed. Please ensure both Project and Assignee are selected from the list.");
+            }
+        } catch (err) {
+            console.error("Network error:", err);
+        }
+    };
+
+    document.getElementById("deleteBtn").onclick = async () => {
+        if (confirm("⚠️ Permanently delete this task?")) {
+            const res = await fetch(`/tasks/${taskId}`, { method: "DELETE" });
+            if (res.ok) window.location.href = "/tasks";
+        }
+    };
+</script>
+{% endblock %}

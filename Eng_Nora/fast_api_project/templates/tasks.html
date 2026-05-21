@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}Task Management | Dashboard{% endblock %}
+
+{% block header_content %}
+    <h1>Global Task List</h1>
+    <p>Monitor and update task statuses across all active projects.</p>
+{% endblock %}
+
+{% block header_actions %}
+    <div class="header-actions">
+        <input list="tasks_search_list" id="quick_search" placeholder="🔍 Search for a task..." onchange="goToTask(this)">
+        <datalist id="tasks_search_list">
+            {% for task in tasks %}
+            <option value="{{ task.id }} - {{ task.title }}">
+            {% endfor %}
+        </datalist>
+        <button id="showAddBtn" class="primary-btn" onclick="toggleForm()">+ Add New Task</button>
+    </div>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    
+    <div id="taskForm" class="form-overlay-card" style="display: none; margin-bottom: 30px;">
+        <h3>✅ Create New Task</h3>
+        <div class="form-grid">
+            <div class="form-group full-width">
+                <label>Task Title:</label>
+                <input type="text" id="task_title" placeholder="e.g., Fix database connection leak">
+                <span id="error_title" class="error-msg"></span>
+            </div>
+
+            <div class="form-group">
+                <label>Initial Status:</label>
+                <select id="task_status">
+                    <option value="pending">Pending</option>
+                    <option value="done">Done</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Related Project:</label>
+                <input list="projects_list" id="project_search" placeholder="Select a project...">
+                <datalist id="projects_list">
+                    {% for project in projects %}
+                    <option data-id="{{ project.id }}" value="{{ project.id }} - {{ project.title }}">
+                    {% endfor %}
+                </datalist>
+                <span id="error_project_id" class="error-msg"></span>
+            </div>
+
+            <div class="form-group">
+                <label>Assign To:</label>
+                <input list="users_list" id="user_search" placeholder="Select a user...">
+                <datalist id="users_list">
+                    {% for user in users %}
+                    <option data-id="{{ user.id }}" value="{{ user.id }} - {{ user.name }}">
+                    {% endfor %}
+                </datalist>
+                <span id="error_assigned_to" class="error-msg"></span>
+            </div>
+
+            <div class="form-group full-width">
+                <label>Description:</label>
+                <textarea id="task_description" rows="2" placeholder="Write task details here..."></textarea>
+                <span id="error_description" class="error-msg"></span>
+            </div>
+        </div>
+
+        <div class="form-actions" style="margin-top: 15px; display: flex; gap: 10px;">
+            <button id="saveTaskBtn" class="primary-btn">Save Task</button>
+            <button onclick="toggleForm()" class="delete-btn">Cancel</button>
+        </div>
+    </div>
+
+    <div class="table-wrapper">
+        <div class="section-header" style="padding: 15px 20px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between;">
+            <h3 style="margin: 0; font-size: 1rem;">Task Overview</h3>
+            <span class="count-badge">{{ tasks|length }} Tasks</span>
+        </div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th style="text-align: left;">ID</th>
+                    <th style="text-align: left;">TASK TITLE</th>
+                    <th style="text-align: left;">STATUS</th>
+                    <th style="text-align: left;">PROJECT</th>
+                    <th style="text-align: left;">ASSIGNEE</th>
+                    <th style="text-align: right;">ACTIONS</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for task in tasks %}
+                <tr>
+                    <td><span class="id-badge">#{{ task.id }}</span></td>
+                    <td>
+                        <a href="/tasks/{{ task.id }}" class="card-link" style="font-weight: 700;">{{ task.title }}</a>
+                    </td>
+                    <td>
+                        <span class="status-badge {{ 'active' if task.status == 'done' else 'pending' }}">
+                            {{ "Completed" if task.status == "done" else "Pending" }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if task.project %}
+                        <span style="color: #64748b; font-size: 0.9rem;">📁 {{ task.project.title }}</span>
+                        {% else %}<span style="color: #cbd5e1;">-</span>{% endif %}
+                    </td>
+                    <td>
+                        {% if task.assigned_user %}
+                        <span style="color: #64748b; font-size: 0.9rem;">#{{ task.assigned_to }}👤 {{ task.assigned_user.name }}</span>
+                        {% else %}<span style="color: #cbd5e1;">-</span>{% endif %}
+                    </td>
+                    <td style="text-align: right;">
+                        <button onclick="deleteTask({{ task.id }})" class="delete-btn" style="padding: 4px 10px;">
+                            🗑️ Delete
+                        </button>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" style="text-align: center; color: #94a3b8; padding: 40px;">No tasks found. Start by adding a new one!</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function toggleForm() {
+        const form = document.getElementById("taskForm");
+        form.style.display = (form.style.display === "none" || form.style.display === "") ? "block" : "none";
+        if (form.style.display === "block") form.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function clearErrors() {
+        document.querySelectorAll('.error-msg').forEach(el => el.innerText = "");
+        document.querySelectorAll('input, select, textarea').forEach(el => el.classList.remove('invalid'));
+    }
+
+    function goToTask(input) {
+        const val = input.value;
+        if (val.includes(" - ")) {
+            const id = val.split(" - ")[0];
+            window.location.href = `/tasks/${id}`;
+        }
+    }
+
+    function getIDFromInput(inputId, listId) {
+        const inputElement = document.getElementById(inputId);
+        const val = inputElement ? inputElement.value : "";
+        const opts = document.getElementById(listId).options;
+        for (let i = 0; i < opts.length; i++) {
+            if (opts[i].value === val) return opts[i].getAttribute('data-id');
+        }
+        return null;
+    }
+
+    document.getElementById("saveTaskBtn").onclick = async () => {
+        clearErrors();
+        const projectId = getIDFromInput('project_search', 'projects_list');
+        const userId = getIDFromInput('user_search', 'users_list');
+
+        if (!projectId || !userId) {
+            alert("⚠️ Please select a Project and User from the lists.");
+            return;
+        }
+
+        const payload = {
+            title: document.getElementById("task_title").value,
+            description: document.getElementById("task_description").value,
+            status: document.getElementById("task_status").value,
+            project_id: parseInt(projectId),
+            assigned_to: parseInt(userId)
+        };
+
+        const res = await fetch("/tasks/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+            location.reload();
+        } else {
+            const errorData = await res.json();
+            if (errorData.detail && Array.isArray(errorData.detail)) {
+                errorData.detail.forEach(err => {
+                    const field = err.loc[1];
+                    const errorSpan = document.getElementById(`error_${field}`);
+                    const input = document.getElementById(`task_${field}`);
+                    if (errorSpan) errorSpan.innerText = "⚠️ " + err.msg;
+                    if (input) input.classList.add('invalid');
+                });
+            }
+        }
+    };
+
+    async function deleteTask(id) {
+        if (confirm("Are you sure you want to permanently delete this task?")) {
+            const res = await fetch(`/tasks/${id}`, { method: "DELETE" });
+            if (res.ok) location.reload();
+        }
+    }
+</script>
+{% endblock %}
